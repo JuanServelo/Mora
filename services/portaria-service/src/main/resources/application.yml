@@ -38,7 +38,7 @@ spring:
           - "traefik.http.routers.portaria.rule=PathPrefix(`/api/portaria`)"
           - "traefik.http.routers.portaria.entrypoints=web"
           - "traefik.http.middlewares.portaria-stripprefix.stripprefix.prefixes=/api/portaria"
-          - "traefik.http.routers.portaria.middlewares=portaria-stripprefix"
+          - "traefik.http.routers.portaria.middlewares=portaria-stripprefix,module-auth@docker"
 
         health-check-path: /actuator/health
         health-check-interval: 15s

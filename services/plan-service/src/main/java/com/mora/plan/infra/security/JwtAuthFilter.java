@@ -38,11 +38,8 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                         .parseSignedClaims(token)
                         .getPayload();
 
-                // Assuming the subject or 'id' holds the user identifier
-                String userId = claims.get("id", String.class);
-                if (userId == null) {
-                    userId = claims.getSubject();
-                }
+                Object idObj = claims.get("id");
+                String userId = idObj != null ? String.valueOf(idObj) : claims.getSubject();
                 
                 if (userId != null) {
                     UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(

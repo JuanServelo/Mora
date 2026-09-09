@@ -7,6 +7,7 @@ import sharp from 'sharp';
 import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
+import { fetchActiveModules } from '../services/planHelper.js';
 import { Op } from 'sequelize';
 import User from '../models/User.js';
 import authMiddleware from '../middleware/auth.js';
@@ -66,9 +67,9 @@ function loginComErroRedirect(codigo, extra = '') {
   return `${getFrontendUrl()}/login?erro=${codigo}${extra}`;
 }
 
-export const signToken = (userId, perfil, tokenVersion = 0, email = undefined) =>
+export const signToken = (userId, perfil, tokenVersion = 0, email = undefined, condominioId = undefined, activeModules = []) =>
   jwt.sign(
-    { id: userId, perfil, tokenVersion, ...(email != null && { email }) },
+    { id: userId, perfil, tokenVersion, ...(email != null && { email }), ...(condominioId != null && { condominioId }), activeModules },
     getJwtSecret(),
     { expiresIn: JWT_EXPIRES_IN },
   );
@@ -117,7 +118,8 @@ router.post('/login', authLimiter, async (req, res) => {
     }
 
     const perfil = usuario.getPerfilEfetivo();
-    const token = signToken(usuario.id, perfil, usuario.tokenVersion || 0, usuario.email);
+    const activeModules = await fetchActiveModules(usuario.condominioId);
+    const token = signToken(usuario.id, perfil, usuario.tokenVersion || 0, usuario.email, usuario.condominioId, activeModules);
 
     res.json({
       sucesso: true,
@@ -228,6 +230,8 @@ router.put('/me', authMiddleware, async (req, res) => {
           usuario.getPerfilEfetivo(),
           usuario.tokenVersion,
           usuario.email,
+          usuario.condominioId,
+          await fetchActiveModules(usuario.condominioId)
         ),
       }),
     });
@@ -424,10 +428,11 @@ router.post('/oauth/exchange', tokenLimiter, async (req, res) => {
     await usuario.save({ validate: false });
 
     const perfil = usuario.getPerfilEfetivo();
+    const activeModules = await fetchActiveModules(usuario.condominioId);
     res.json({
       sucesso: true,
       mensagem: 'Login realizado com sucesso',
-      token: signToken(usuario.id, perfil, usuario.tokenVersion || 0, usuario.email),
+      token: signToken(usuario.id, perfil, usuario.tokenVersion || 0, usuario.email, usuario.condominioId, activeModules),
       usuario: usuarioPublico(usuario),
       redirectPath: redirectPorPerfil(perfil),
     });
@@ -445,6 +450,38 @@ router.post('/logout', authMiddleware, async (req, res) => {
   } catch (err) {
     console.error('Erro no logout:', err);
     res.status(500).json({ sucesso: false, mensagem: 'Erro ao encerrar sessão' });
+  }
+});
+
+router.get('/verify-modules', (req, res) => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({ error: 'Token missing' });
+  }
+
+  const token = authHeader.split(' ')[1];
+  try {
+    const decoded = jwt.verify(token, getJwtSecret());
+    const { perfil, activeModules = [] } = decoded;
+
+    if (perfil === 'admin_geral') {
+      return res.status(200).send('OK');
+    }
+
+    const uri = req.headers['x-forwarded-uri'] || '';
+    
+    let requiredModule = null;
+    if (uri.startsWith('/api/portaria')) requiredModule = 'portaria';
+    else if (uri.startsWith('/api/vagas')) requiredModule = 'vagas';
+    else if (uri.startsWith('/api/meetings')) requiredModule = 'reunioes';
+    
+    if (requiredModule && !activeModules.includes(requiredModule)) {
+      return res.status(403).json({ error: 'Módulo não contratado para este condomínio.' });
+    }
+    
+    return res.status(200).send('OK');
+  } catch (err) {
+    return res.status(401).json({ error: 'Token inválido' });
   }
 });
 

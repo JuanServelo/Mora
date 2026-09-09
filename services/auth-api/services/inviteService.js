@@ -13,6 +13,8 @@ import {
 import { gerarCodigoConvite, normalizarCodigo } from '../utils/inviteCode.js';
 import { enviarEmailConvite, AVISO_EMAIL_FALHOU } from '../utils/emailService.js';
 import { validarUnidadeExiste } from '../utils/portariaClient.js';
+import { redirectPorPerfil } from '../utils/redirectPorPerfil.js';
+import { fetchActiveModules } from './planHelper.js';
 import { normalizarCpf } from '../utils/usuarioPublico.js';
 
 const HORAS_VALIDADE = 48;
@@ -366,7 +368,8 @@ export async function ativarConta({
     await transaction.commit();
 
     const perfil = usuario.getPerfilEfetivo();
-    const token = signToken(usuario.id, perfil, usuario.tokenVersion, usuario.email);
+    const activeModules = await fetchActiveModules(usuario.condominioId);
+    const token = signToken(usuario.id, perfil, usuario.tokenVersion, usuario.email, usuario.condominioId, activeModules);
 
     return {
       sucesso: true,

@@ -38,7 +38,7 @@ spring:
           - "traefik.http.routers.vagas.rule=PathPrefix(`/api/vagas`)"
           - "traefik.http.routers.vagas.entrypoints=web"
           - "traefik.http.middlewares.vagas-stripprefix.stripprefix.prefixes=/api/vagas"
-          - "traefik.http.routers.vagas.middlewares=vagas-stripprefix"
+          - "traefik.http.routers.vagas.middlewares=vagas-stripprefix,module-auth@docker"
 
         health-check-path: /actuator/health
         health-check-interval: 15s

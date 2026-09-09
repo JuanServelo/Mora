@@ -10,6 +10,7 @@
     "test": "node --experimental-vm-modules ../../node_modules/jest/bin/jest.js --testPathPattern=tests/"
   },
   "dependencies": {
+    "axios": "^1.20.0",
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
     "dotenv": "^16.3.1",
