@@ -21,4 +21,6 @@ public interface MoradorRepository extends JpaRepository<Morador, String> {
 
     @Query("SELECT m FROM Morador m LEFT JOIN FETCH m.apartamento WHERE m.id = :id")
     Optional<Morador> findByIdComApartamento(@Param("id") String id);
+
+    boolean existsByApartamento_IdAndAtivo(java.util.UUID apartamentoId, boolean ativo);
 }

@@ -17,6 +17,15 @@ export async function garantirTabelaPortaria() {
     )
   `);
 
+  // Tabelas criadas antes da adição de condominioId não têm essa coluna;
+  // sem ela, todas as queries que filtram por condomínio retornam 500.
+  await sequelize.query(`
+    ALTER TABLE registros_acesso
+      ADD COLUMN IF NOT EXISTS "condominioId" VARCHAR(50),
+      ADD COLUMN IF NOT EXISTS "nomeSnapshot" VARCHAR(150),
+      ADD COLUMN IF NOT EXISTS "perfilSnapshot" VARCHAR(50)
+  `);
+
   await sequelize.query(`
     CREATE INDEX IF NOT EXISTS idx_registros_acesso_usuario
       ON registros_acesso ("usuarioId", "createdAt" DESC)

@@ -18,6 +18,7 @@ import {
 } from '../services/occupantService.js';
 import { validarUnidadeExiste } from '../utils/portariaClient.js';
 import User from '../models/User.js';
+import Condominio from '../models/Condominio.js';
 import { usuarioPublico } from '../utils/usuarioPublico.js';
 
 const router = express.Router();
@@ -81,16 +82,37 @@ router.post('/invites', async (req, res) => {
       });
     }
 
-    // Admin (role: 'admin') pode criar convites para qualquer condomínio.
+    // ADMIN_GERAL pode criar convites para qualquer condomínio ativo.
     // Demais perfis ficam restritos ao seu próprio condominioId.
-    const condominioEfetivo = req.user.role === 'admin'
+    const isAdminGeral = req.userPerfil === PERFIS.ADMIN_GERAL;
+    const condominioEfetivo = isAdminGeral
       ? (condominioId || req.user.condominioId || null)
-      : (req.user.condominioId || condominioId || null);
+      : req.user.condominioId || null;
 
     if (!condominioEfetivo) {
       return res.status(400).json({
         sucesso: false,
         mensagem: 'Selecione o condomínio para o qual o convite será emitido.',
+      });
+    }
+
+    // Scope check: non-ADMIN_GERAL não pode criar usuários em outro condomínio.
+    if (!isAdminGeral && condominioId && condominioId !== req.user.condominioId) {
+      return res.status(403).json({
+        sucesso: false,
+        mensagem: 'Acesso negado: você não tem permissão para criar usuários neste condomínio.',
+      });
+    }
+
+    // Validar que o condomínio existe e está ativo.
+    const condo = await Condominio.findByPk(condominioEfetivo);
+    if (!condo) {
+      return res.status(400).json({ sucesso: false, mensagem: 'Condomínio não encontrado.' });
+    }
+    if (condo.status !== 'active') {
+      return res.status(400).json({
+        sucesso: false,
+        mensagem: 'Não é possível cadastrar usuários em um condomínio inativo.',
       });
     }
 

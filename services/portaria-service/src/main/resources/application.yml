@@ -16,6 +16,9 @@ spring:
 
   jpa:
     hibernate:
+      # 'update' cria tabelas novas automaticamente (útil em dev).
+      # Em produção, prefira 'validate' para falhar no startup se alguma tabela faltar,
+      # em vez de silenciosamente criar uma estrutura incompleta.
       ddl-auto: update
       naming:
         physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl

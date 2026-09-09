@@ -8,6 +8,7 @@ const ROTA_POR_PERFIL = {
   [PERFIS.MORADOR]: '/inicio',
   [PERFIS.DONO_ALUGUEL]: '/inicio',
   [PERFIS.CONVIDADO]: '/inicio',
+  [PERFIS.TERCEIRO]: '/inicio',
 };
 
 export function redirectPorPerfil(perfil) {

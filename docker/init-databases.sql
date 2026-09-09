@@ -79,6 +79,23 @@ CREATE TABLE IF NOT EXISTS invites (
   "updatedAt" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Portaria: histórico de entradas e saídas (um registro por evento ENTRADA/SAIDA)
+CREATE TABLE IF NOT EXISTS registros_acesso (
+  id                SERIAL PRIMARY KEY,
+  "usuarioId"       INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  tipo              VARCHAR(10) NOT NULL CHECK (tipo IN ('ENTRADA', 'SAIDA')),
+  "registradoPorId" INTEGER REFERENCES users(id) ON DELETE SET NULL,
+  "condominioId"    VARCHAR(50),
+  "nomeSnapshot"    VARCHAR(150),
+  "perfilSnapshot"  VARCHAR(50),
+  "createdAt"       TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_registros_acesso_usuario
+  ON registros_acesso ("usuarioId", "createdAt" DESC);
+CREATE INDEX IF NOT EXISTS idx_registros_acesso_condominio
+  ON registros_acesso ("condominioId", "createdAt" DESC);
+
 -- Usuários de teste por perfil (senha: Teste@1234)
 -- ADMIN_GERAL   → admin@mora.com        senha: Teste@1234
 

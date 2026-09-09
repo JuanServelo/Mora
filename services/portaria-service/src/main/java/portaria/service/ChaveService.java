@@ -121,7 +121,11 @@ public class ChaveService {
         });
 
         String nomeResponsavel = resolverNomeResponsavel(request.getResponsavelId(), request.getTipoResponsavel(), request.getNomeResponsavel());
-        String perfilResponsavel = request.getTipoResponsavel() == TipoResponsavel.MORADOR ? "Morador" : "Funcionário";
+        String perfilResponsavel = switch (request.getTipoResponsavel()) {
+            case MORADOR -> "Morador";
+            case FUNCIONARIO -> "Funcionário";
+            case TERCEIRO -> "Terceiro";
+        };
 
         var claims = AuthContext.get();
         String porteiroPorNome = claims != null ? claims.email() : "sistema";
@@ -187,7 +191,7 @@ public class ChaveService {
         chaveRepository.findById(chaveId)
             .orElseThrow(() -> new RecursoNaoEncontradoException("Chave não encontrada: " + chaveId));
 
-        LocalDate inicio = dataInicio != null ? dataInicio : LocalDate.now();
+        LocalDate inicio = dataInicio != null ? dataInicio : LocalDate.of(2000, 1, 1);
         LocalDate fim = dataFim != null ? dataFim : LocalDate.now();
 
         if (inicio.isAfter(fim)) {
@@ -234,11 +238,11 @@ public class ChaveService {
         if (nomeResponsavel != null && !nomeResponsavel.isBlank()) {
             return nomeResponsavel;
         }
-        if (tipo == TipoResponsavel.MORADOR) {
-            return moradorService.buscarPorId(responsavelId).getNome();
-        } else {
-            return funcionarioService.buscarPorId(responsavelId).getNome();
-        }
+        return switch (tipo) {
+            case MORADOR -> moradorService.buscarPorId(responsavelId).getNome();
+            case FUNCIONARIO -> funcionarioService.buscarPorId(responsavelId).getNome();
+            case TERCEIRO -> responsavelId; // Terceiro não tem registro no portaria-service
+        };
     }
 
     private static String fmtDataHora(LocalDateTime dt) {

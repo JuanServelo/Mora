@@ -31,4 +31,9 @@ public class Morador extends Usuario {
     public String getApartamentoNumero() {
         return apartamento != null ? apartamento.getNumero() : null;
     }
+
+    @JsonProperty("apartamentoId")
+    public String getApartamentoId() {
+        return apartamento != null ? apartamento.getId().toString() : null;
+    }
 }

@@ -114,7 +114,7 @@ router.post('/login', authLimiter, async (req, res) => {
     }
 
     if (usuario.semAcessoSistema) {
-      return res.status(401).json({ sucesso: false, mensagem: 'Guests não possuem acesso ao sistema.' });
+      return res.status(401).json({ sucesso: false, mensagem: 'Este perfil não possui acesso ao sistema. Procure a administração do condomínio.' });
     }
 
     const senhaValida = await usuario.compararSenha(senha);
