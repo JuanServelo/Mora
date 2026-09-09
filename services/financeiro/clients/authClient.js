@@ -30,6 +30,9 @@ export async function identidadeDoAtor(usuarioId, authorization) {
 
   const valor = {
     usuarioId: u.id,
+    nome: u.nome ?? null,
+    email: u.email ?? null,
+    cpf: u.cpf ?? null,
     condominioId: u.condominioId ?? null,
     unidadeId: u.unidadeId ?? null,
     responsavelFinanceiro: Boolean(u.responsavelFinanceiro),
@@ -42,4 +45,15 @@ export async function identidadeDoAtor(usuarioId, authorization) {
 /** Usado quando o vínculo do usuário muda e o cache ficaria velho. */
 export function esquecerIdentidade(usuarioId) {
   cache.delete(usuarioId);
+}
+
+/**
+ * Lista os moradores de uma unidade com seus dados públicos (inclui CPF e e-mail).
+ *
+ * Requer um token de ADMIN_GERAL ou ADMIN_SINDICO; o financeiro-service repassa
+ * a credencial de quem disparou o fechamento.
+ */
+export async function listarResidentesPorUnidade(unidadeId, authorization) {
+  const url = `${SERVICOS.auth}/api/user-management/units/${encodeURIComponent(unidadeId)}/residents`;
+  return buscar(url, authorization);
 }

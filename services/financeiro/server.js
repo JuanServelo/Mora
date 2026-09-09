@@ -10,10 +10,15 @@ import helmet from 'helmet';
 import contextoRoutes from './routes/contexto.js';
 import cadastrosRoutes from './routes/cadastros.js';
 import gatewayRoutes from './routes/gateway.js';
+import contasConsumoRoutes from './routes/contasConsumo.js';
+import faturasRoutes from './routes/faturas.js';
+import webhooksRoutes from './routes/webhooks.js';
+import notificacoesRoutes from './routes/notificacoes.js';
 import { PORT, SERVICOS, ehProducao } from './config/servicos.js';
 import { registrarNoConsul } from './config/consul.js';
 import { verificarConexao } from './config/database.js';
 import { gatewayConfigurado } from './config/asaas.js';
+import { iniciarJobOverdue } from './jobs/overdueFaturasJob.js';
 
 // O segredo é compartilhado com o auth-api para validar os tokens que ele emite.
 if (!process.env.JWT_SECRET) {
@@ -43,6 +48,10 @@ app.use(express.json({ limit: '64kb' }));
 app.use('/api/financeiro', contextoRoutes);
 app.use('/api/financeiro', cadastrosRoutes);
 app.use('/api/financeiro', gatewayRoutes);
+app.use('/api/financeiro', contasConsumoRoutes);
+app.use('/api/financeiro', faturasRoutes);
+app.use('/api/financeiro', webhooksRoutes);
+app.use('/api/financeiro', notificacoesRoutes);
 
 app.get('/health', async (_req, res) => {
   const banco = await verificarConexao().catch(() => false);
@@ -67,6 +76,7 @@ const server = app.listen(PORT, async () => {
   console.log(`  banco:    ${process.env.POSTGRES_DB || 'mora_financeiro'}`);
   console.log(`  gateway:  ${gatewayConfigurado() ? 'configurado' : 'ASAAS_API_KEY ausente'}`);
   if (!ehProducao()) console.log('  ambiente: desenvolvimento');
+  iniciarJobOverdue();
   await registrarNoConsul();
 });
 

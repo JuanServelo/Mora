@@ -2,6 +2,7 @@
 export const SERVICOS = {
   auth: process.env.AUTH_API_URL || 'http://localhost:3001',
   portaria: process.env.PORTARIA_SERVICE_URL || 'http://localhost:8090',
+  plan: process.env.PLAN_SERVICE_URL || 'http://localhost:8093',
 };
 
 /** Uma fonte lenta não pode segurar o fechamento inteiro. */

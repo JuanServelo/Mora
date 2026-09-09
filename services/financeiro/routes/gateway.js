@@ -10,7 +10,7 @@ import { paraCentavos, formatarBRL } from '../utils/dinheiro.js';
 
 const router = express.Router();
 
-router.use(autenticar, exigirPerfis(...PERFIS_GESTAO), resolverEscopo);
+const adm = [autenticar, exigirPerfis(...PERFIS_GESTAO), resolverEscopo];
 
 /**
  * Só opera contra o ambiente de teste do gateway.
@@ -43,7 +43,7 @@ function vencimentoEm(dias = 7) {
   return d.toISOString().slice(0, 10);
 }
 
-router.get('/gateway/status', (_req, res) => {
+router.get('/gateway/status', adm, (_req, res) => {
   res.json({
     sucesso: true,
     configurado: gatewayConfigurado(),
@@ -55,7 +55,7 @@ router.get('/gateway/status', (_req, res) => {
   });
 });
 
-router.post('/gateway/teste', async (req, res) => {
+router.post('/gateway/teste', adm, async (req, res) => {
   if (!gatewayConfigurado()) {
     return res.status(503).json({
       sucesso: false,
@@ -137,7 +137,7 @@ router.post('/gateway/teste', async (req, res) => {
   res.status(201).json(resposta);
 });
 
-router.get('/gateway/teste/:id', async (req, res) => {
+router.get('/gateway/teste/:id', adm, async (req, res) => {
   const r = await consultarCobranca(req.params.id);
   if (!r.ok) return res.status(502).json({ sucesso: false, mensagem: r.erro });
   res.json({
@@ -151,7 +151,7 @@ router.get('/gateway/teste/:id', async (req, res) => {
   });
 });
 
-router.delete('/gateway/teste/:id', async (req, res) => {
+router.delete('/gateway/teste/:id', adm, async (req, res) => {
   const r = await cancelarCobranca(req.params.id);
   if (!r.ok) return res.status(502).json({ sucesso: false, mensagem: r.erro });
   res.json({ sucesso: true });

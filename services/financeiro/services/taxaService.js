@@ -112,5 +112,6 @@ export async function atualizarRegras(condominioId, corpo) {
   await regras.obterOuCriar(condominioId);
   return regras.atualizar(condominioId, {
     modo, diaFechamento, diaVencimento, diasRecursoMulta,
+    incluirTaxaPlataforma: corpo.incluirTaxaPlataforma ?? null,
   });
 }

@@ -6,10 +6,8 @@ import * as fracoes from '../services/fracaoService.js';
 
 const router = express.Router();
 
-// Cadastro financeiro é trabalho de quem administra. Morador e porteiro não
-// entram nem para ler: o que lhes interessa é a própria fatura, que virá em
-// rota própria.
-router.use(autenticar, exigirPerfis(...PERFIS_GESTAO), resolverEscopo);
+const adm = [autenticar, exigirPerfis(...PERFIS_GESTAO), resolverEscopo];
+const admW = [...adm, exigirEscrita];
 
 /** Responde o erro que o service devolveu, quando houver. */
 function seErro(resultado, res) {
@@ -20,13 +18,13 @@ function seErro(resultado, res) {
 
 // ── Regras de fechamento ────────────────────────────────────────────────────
 
-router.get('/config', async (req, res) => {
+router.get('/config', adm, async (req, res) => {
   const r = await taxas.obterRegras(req.escopo.condominioId);
   if (seErro(r, res)) return;
   res.json({ sucesso: true, config: r });
 });
 
-router.put('/config', exigirEscrita, async (req, res) => {
+router.put('/config', admW, async (req, res) => {
   const r = await taxas.atualizarRegras(req.escopo.condominioId, req.body ?? {});
   if (seErro(r, res)) return;
   res.json({ sucesso: true, config: r });
@@ -34,24 +32,24 @@ router.put('/config', exigirEscrita, async (req, res) => {
 
 // ── Tipos de taxa ───────────────────────────────────────────────────────────
 
-router.get('/tipos-taxa', async (req, res) => {
+router.get('/tipos-taxa', adm, async (req, res) => {
   const itens = await taxas.listarTipos(req.escopo.condominioId, req.query.todos === 'true');
   res.json({ sucesso: true, total: itens.length, itens });
 });
 
-router.post('/tipos-taxa', exigirEscrita, async (req, res) => {
+router.post('/tipos-taxa', admW, async (req, res) => {
   const r = await taxas.criarTipo(req.escopo.condominioId, req.body ?? {});
   if (seErro(r, res)) return;
   res.status(201).json({ sucesso: true, tipo: r });
 });
 
-router.put('/tipos-taxa/:id', exigirEscrita, async (req, res) => {
+router.put('/tipos-taxa/:id', admW, async (req, res) => {
   const r = await taxas.atualizarTipo(req.escopo.condominioId, req.params.id, req.body ?? {});
   if (seErro(r, res)) return;
   res.json({ sucesso: true, tipo: r });
 });
 
-router.delete('/tipos-taxa/:id', exigirEscrita, async (req, res) => {
+router.delete('/tipos-taxa/:id', admW, async (req, res) => {
   const r = await taxas.desativarTipo(req.escopo.condominioId, req.params.id);
   if (seErro(r, res)) return;
   res.json({ sucesso: true, tipo: r });
@@ -59,13 +57,13 @@ router.delete('/tipos-taxa/:id', exigirEscrita, async (req, res) => {
 
 // ── Fração ideal ────────────────────────────────────────────────────────────
 
-router.get('/fracoes', async (req, res) => {
+router.get('/fracoes', adm, async (req, res) => {
   const r = await fracoes.listar(req.escopo.condominioId, req.authorization);
   if (seErro(r, res)) return;
   res.json({ sucesso: true, ...r });
 });
 
-router.put('/fracoes/:unidadeId', exigirEscrita, async (req, res) => {
+router.put('/fracoes/:unidadeId', admW, async (req, res) => {
   const r = await fracoes.definir(
     req.escopo.condominioId, req.params.unidadeId, req.body?.milesimos,
   );
@@ -73,19 +71,19 @@ router.put('/fracoes/:unidadeId', exigirEscrita, async (req, res) => {
   res.json({ sucesso: true, fracao: r });
 });
 
-router.delete('/fracoes/:unidadeId', exigirEscrita, async (req, res) => {
+router.delete('/fracoes/:unidadeId', admW, async (req, res) => {
   const r = await fracoes.remover(req.escopo.condominioId, req.params.unidadeId);
   if (seErro(r, res)) return;
   res.json({ sucesso: true });
 });
 
-router.get('/fracoes/propor-por-area', async (req, res) => {
+router.get('/fracoes/propor-por-area', adm, async (req, res) => {
   const r = await fracoes.proporPorArea(req.escopo.condominioId, req.authorization);
   if (seErro(r, res)) return;
   res.json({ sucesso: true, ...r });
 });
 
-router.post('/fracoes/aplicar-lote', exigirEscrita, async (req, res) => {
+router.post('/fracoes/aplicar-lote', admW, async (req, res) => {
   const r = await fracoes.aplicarLote(req.escopo.condominioId, req.body?.fracoes);
   if (seErro(r, res)) return;
   res.json({ sucesso: true, ...r });

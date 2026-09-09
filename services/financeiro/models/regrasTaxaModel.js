@@ -2,7 +2,8 @@ import { consultar } from '../config/database.js';
 
 const CAMPOS = `condominio_id AS "condominioId", modo,
                 dia_fechamento AS "diaFechamento", dia_vencimento AS "diaVencimento",
-                dias_recurso_multa AS "diasRecursoMulta"`;
+                dias_recurso_multa AS "diasRecursoMulta",
+                incluir_taxa_plataforma AS "incluirTaxaPlataforma"`;
 
 /**
  * Devolve as regras do condomínio, criando-as com o padrão na primeira leitura.
@@ -24,10 +25,13 @@ export async function atualizar(condominioId, r) {
   const { rows } = await consultar(
     `UPDATE regras_taxa
         SET modo = $2, dia_fechamento = $3, dia_vencimento = $4,
-            dias_recurso_multa = $5, atualizado_em = now()
+            dias_recurso_multa = $5,
+            incluir_taxa_plataforma = COALESCE($6, incluir_taxa_plataforma),
+            atualizado_em = now()
       WHERE condominio_id = $1
       RETURNING ${CAMPOS}`,
-    [condominioId, r.modo, r.diaFechamento, r.diaVencimento, r.diasRecursoMulta],
+    [condominioId, r.modo, r.diaFechamento, r.diaVencimento, r.diasRecursoMulta,
+      r.incluirTaxaPlataforma ?? null],
   );
   return rows[0] ?? null;
 }
