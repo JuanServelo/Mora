@@ -6,6 +6,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import portaria.model.Visitante;
+import portaria.security.CondominioUtils;
 import portaria.service.VisitanteService;
 
 import java.util.List;
@@ -29,12 +30,12 @@ public class VisitanteController {
 
     @GetMapping
     public List<Visitante> listarTodos() {
-        return visitanteService.listarTodos();
+        return visitanteService.listarTodos(CondominioUtils.condominioIdEfetivo());
     }
 
     @GetMapping("/dentro")
     public List<Visitante> listarDentro() {
-        return visitanteService.listarDentro();
+        return visitanteService.listarDentro(CondominioUtils.condominioIdEfetivo());
     }
 
     @GetMapping("/{id}")

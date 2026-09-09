@@ -2,18 +2,21 @@ package portaria.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import portaria.exception.OperacaoInvalidaException;
 import portaria.exception.RecursoNaoEncontradoException;
 import portaria.model.Vaga;
 import portaria.model.Apartamento;
 import portaria.repository.VagaRepository;
 import portaria.repository.ApartamentoRepository;
+import portaria.security.AuthContext;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class VagaService {
 
     private final VagaRepository vagaRepository;
@@ -26,15 +29,25 @@ public class VagaService {
                     .orElseThrow(() -> new RecursoNaoEncontradoException("Apartamento não encontrado: " + apartamentoId));
             vaga.setApartamento(apt);
         }
+        var claims = AuthContext.get();
+        if (claims != null && claims.condominioId() != null && !"default".equals(claims.condominioId())) {
+            vaga.setCondominioId(claims.condominioId());
+        }
         vaga.setAtiva(true);
         return vagaRepository.save(vaga);
     }
 
-    public List<Vaga> listarTodas() {
+    public List<Vaga> listarTodas(String condominioId) {
+        if (condominioId != null && !condominioId.isBlank()) {
+            return vagaRepository.findByCondominioId(condominioId);
+        }
         return vagaRepository.findAll();
     }
 
-    public List<Vaga> listarApenasAtivas() {
+    public List<Vaga> listarApenasAtivas(String condominioId) {
+        if (condominioId != null && !condominioId.isBlank()) {
+            return vagaRepository.findByCondominioIdAndAtiva(condominioId, true);
+        }
         return vagaRepository.findByAtiva(true);
     }
 

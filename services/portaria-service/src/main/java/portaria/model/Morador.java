@@ -1,11 +1,10 @@
 package portaria.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import java.time.LocalDateTime;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
@@ -14,12 +13,27 @@ import java.time.LocalDateTime;
 public class Morador extends Usuario {
 
     @JsonIgnore
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "apartamento_id")
     private Apartamento apartamento;
 
     @JsonIgnore
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "bloco_id")
     private Bloco bloco;
+
+    @JsonProperty("blocoNome")
+    public String getBlocoNome() {
+        return bloco != null ? bloco.getNome() : null;
+    }
+
+    @JsonProperty("apartamentoNumero")
+    public String getApartamentoNumero() {
+        return apartamento != null ? apartamento.getNumero() : null;
+    }
+
+    @JsonProperty("apartamentoId")
+    public String getApartamentoId() {
+        return apartamento != null ? apartamento.getId().toString() : null;
+    }
 }

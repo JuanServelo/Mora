@@ -22,6 +22,8 @@ export const PERFIS = {
   DONO_ALUGUEL: 'DONO_ALUGUEL',
   /** Visitante recorrente pré-autorizado. Sem acesso ao sistema. */
   CONVIDADO: 'CONVIDADO',
+  /** Funcionário terceirizado que atua no condomínio. Sem acesso ao sistema por padrão. */
+  TERCEIRO: 'TERCEIRO',
 };
 
 /** Rótulos para exibição. */
@@ -31,7 +33,8 @@ export const PERFIS_LABEL = {
   [PERFIS.PORTEIRO]: 'Porteiro',
   [PERFIS.MORADOR]: 'Morador',
   [PERFIS.DONO_ALUGUEL]: 'Dono Aluguel',
-  [PERFIS.CONVIDADO]: 'Convidado',
+  [PERFIS.CONVIDADO]: 'Visitante',
+  [PERFIS.TERCEIRO]: 'Terceiro',
 };
 
 /* ------------------------------------------------------------- camadas --- */
@@ -43,6 +46,7 @@ export const PERFIS_PLATAFORMA = [PERFIS.ADMIN_GERAL];
 export const PERFIS_CONDOMINIO = [
   PERFIS.ADMIN_SINDICO,
   PERFIS.PORTEIRO,
+  PERFIS.TERCEIRO,
 ];
 
 /** Alcance de uma unidade: exigem `unidadeId`. */
@@ -55,7 +59,7 @@ export const PERFIS_UNIDADE = [
 export const PERFIS_EXIGEM_UNIDADE = PERFIS_UNIDADE;
 
 /** Perfis sem login: existem como registro, não como conta. */
-export const PERFIS_SEM_ACESSO = [PERFIS.CONVIDADO];
+export const PERFIS_SEM_ACESSO = [PERFIS.CONVIDADO, PERFIS.TERCEIRO];
 
 /** Quem efetivamente ocupa a unidade — exclui o dono que não mora nela. */
 export const PERFIS_OCUPANTE_UNIDADE = [PERFIS.MORADOR, PERFIS.CONVIDADO];
@@ -68,12 +72,14 @@ export const PERMISSOES_CADASTRO = {
     PERFIS.ADMIN_GERAL,
     PERFIS.ADMIN_SINDICO,
     PERFIS.PORTEIRO,
+    PERFIS.TERCEIRO,
     PERFIS.MORADOR,
     PERFIS.DONO_ALUGUEL,
     PERFIS.CONVIDADO,
   ],
   [PERFIS.ADMIN_SINDICO]: [
     PERFIS.PORTEIRO,
+    PERFIS.TERCEIRO,
     PERFIS.MORADOR,
     PERFIS.DONO_ALUGUEL,
     PERFIS.CONVIDADO,

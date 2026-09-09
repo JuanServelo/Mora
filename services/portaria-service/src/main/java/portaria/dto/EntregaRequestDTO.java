@@ -6,6 +6,7 @@ import lombok.Data;
 public class EntregaRequestDTO {
 
     private Long destinatarioId;
+    private String moradorId;       // UUID do morador (preferencial — preenche nome/bloco/apt automaticamente)
     private String destinatarioNome;
     private String bloco;
     private String apartamento;

@@ -2,6 +2,7 @@ package portaria.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import portaria.exception.OperacaoInvalidaException;
 import portaria.exception.RecursoNaoEncontradoException;
 import portaria.model.AreaComum;
@@ -12,17 +13,30 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class AreaComunService {
+
+    private static final int MIN_CAPACIDADE = 1;
+    private static final int MAX_CAPACIDADE = 500;
+    private static final double MIN_AREA_COMUM_M2 = 5.0;
+    private static final double MAX_AREA_COMUM_M2 = 10000.0;
 
     private final AreaComunRepository areaComunRepository;
 
     public AreaComum cadastrar(AreaComum areaComum) {
+        validarCamposAreaComum(areaComum);
+
+        if (areaComum.getNome() != null) {
+            areaComum.setNome(areaComum.getNome().trim());
+        }
+
         if (areaComum.getCondominioId() != null) {
-            areaComunRepository.findByNomeAndCondominioId(areaComum.getNome(), areaComum.getCondominioId()).ifPresent(a -> {
-                throw new OperacaoInvalidaException("Já existe uma área comum com o nome '" + areaComum.getNome() + "' neste cliente.");
-            });
+            areaComunRepository.findByNomeIgnoreCaseAndCondominioId(areaComum.getNome(), areaComum.getCondominioId())
+                    .ifPresent(a -> {
+                        throw new OperacaoInvalidaException("Já existe uma área comum com este nome neste condomínio.");
+                    });
         } else {
-            areaComunRepository.findByNome(areaComum.getNome()).ifPresent(a -> {
+            areaComunRepository.findByNomeIgnoreCase(areaComum.getNome()).ifPresent(a -> {
                 throw new OperacaoInvalidaException("Já existe uma área comum cadastrada com o nome: " + areaComum.getNome());
             });
         }
@@ -58,15 +72,22 @@ public class AreaComunService {
 
     public AreaComum atualizar(String id, AreaComum dados) {
         AreaComum areaComum = buscarPorId(id);
+
+        validarCamposAreaComum(dados);
+
+        if (dados.getNome() != null) {
+            dados.setNome(dados.getNome().trim());
+        }
+
         String condId = areaComum.getCondominioId();
 
-        if (!areaComum.getNome().equals(dados.getNome())) {
+        if (!areaComum.getNome().equalsIgnoreCase(dados.getNome())) {
             if (condId != null) {
-                areaComunRepository.findByNomeAndCondominioId(dados.getNome(), condId).ifPresent(a -> {
-                    throw new OperacaoInvalidaException("Já existe uma área comum com o nome: " + dados.getNome());
+                areaComunRepository.findByNomeIgnoreCaseAndCondominioId(dados.getNome(), condId).ifPresent(a -> {
+                    throw new OperacaoInvalidaException("Já existe uma área comum com este nome neste condomínio.");
                 });
             } else {
-                areaComunRepository.findByNome(dados.getNome()).ifPresent(a -> {
+                areaComunRepository.findByNomeIgnoreCase(dados.getNome()).ifPresent(a -> {
                     throw new OperacaoInvalidaException("Já existe uma área comum com o nome: " + dados.getNome());
                 });
             }
@@ -104,5 +125,22 @@ public class AreaComunService {
             throw new RecursoNaoEncontradoException("Área comum não encontrada com id: " + id);
         }
         areaComunRepository.deleteById(id);
+    }
+
+    private void validarCamposAreaComum(AreaComum areaComum) {
+        if (areaComum.getCapacidadeMaxima() == null) {
+            throw new OperacaoInvalidaException("Capacidade máxima é obrigatória.");
+        }
+        if (areaComum.getCapacidadeMaxima() < MIN_CAPACIDADE || areaComum.getCapacidadeMaxima() > MAX_CAPACIDADE) {
+            throw new OperacaoInvalidaException(
+                    "A capacidade máxima deve estar entre " + MIN_CAPACIDADE + " e " + MAX_CAPACIDADE + " pessoas.");
+        }
+        if (areaComum.getArea() == null) {
+            throw new OperacaoInvalidaException("Área é obrigatória.");
+        }
+        if (areaComum.getArea() < MIN_AREA_COMUM_M2 || areaComum.getArea() > MAX_AREA_COMUM_M2) {
+            throw new OperacaoInvalidaException(
+                    "A área deve estar entre " + (int) MIN_AREA_COMUM_M2 + " e " + (int) MAX_AREA_COMUM_M2 + " m².");
+        }
     }
 }

@@ -7,9 +7,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import portaria.dto.EntregaRequestDTO;
 import portaria.dto.EntregaResponseDTO;
+import portaria.security.CondominioUtils;
 import portaria.service.EntregaService;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/entregas")
@@ -37,14 +39,14 @@ public class EntregaController {
 
     @GetMapping
     public List<EntregaResponseDTO> listarTodas() {
-        return entregaService.listarTodas().stream()
+        return entregaService.listarTodas(CondominioUtils.condominioIdEfetivo()).stream()
                 .map(EntregaResponseDTO::fromEntity)
                 .toList();
     }
 
     @GetMapping("/pendentes")
     public List<EntregaResponseDTO> listarPendentes() {
-        return entregaService.listarPendentes().stream()
+        return entregaService.listarPendentes(CondominioUtils.condominioIdEfetivo()).stream()
                 .map(EntregaResponseDTO::fromEntity)
                 .toList();
     }
@@ -54,7 +56,17 @@ public class EntregaController {
         return EntregaResponseDTO.fromEntity(entregaService.buscarPorId(id));
     }
 
-    // Endpoint legado da portaria: marcar retirada com nome do recebedor
+    @GetMapping("/morador/{moradorId}")
+    public List<EntregaResponseDTO> listarPorMorador(@PathVariable UUID moradorId,
+                                                     @RequestParam(required = false) boolean pendentesOnly) {
+        if (pendentesOnly) {
+            return entregaService.listarPendentesPorMorador(moradorId).stream()
+                    .map(EntregaResponseDTO::fromEntity).toList();
+        }
+        return entregaService.listarPorMorador(moradorId).stream()
+                .map(EntregaResponseDTO::fromEntity).toList();
+    }
+
     @PostMapping("/{id}/retirar")
     public EntregaResponseDTO retirar(@PathVariable String id, @RequestBody(required = false) String recebedor) {
         return EntregaResponseDTO.fromEntity(entregaService.retirar(id, recebedor));

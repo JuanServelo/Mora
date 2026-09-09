@@ -13,4 +13,7 @@ public class RetirarChaveRequest {
 
     @NotNull(message = "Tipo do responsável é obrigatório (MORADOR ou FUNCIONARIO)")
     private TipoResponsavel tipoResponsavel;
+
+    /** Nome do responsável, quando não está cadastrado no portaria-service. */
+    private String nomeResponsavel;
 }

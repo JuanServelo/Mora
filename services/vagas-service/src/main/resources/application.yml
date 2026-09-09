@@ -43,6 +43,9 @@ spring:
         health-check-path: /actuator/health
         health-check-interval: 15s
 
+jwt:
+  secret: ${JWT_SECRET:changeme-insecure-default}
+
 management:
   endpoints:
     web:

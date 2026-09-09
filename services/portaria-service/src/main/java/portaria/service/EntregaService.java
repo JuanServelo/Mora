@@ -2,28 +2,52 @@ package portaria.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import portaria.dto.EntregaRequestDTO;
 import portaria.exception.OperacaoInvalidaException;
 import portaria.exception.RecursoNaoEncontradoException;
 import portaria.model.Entrega;
+import portaria.model.Morador;
 import portaria.repository.EntregaRepository;
+import portaria.repository.MoradorRepository;
+import portaria.security.AuthContext;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class EntregaService {
 
     private final EntregaRepository entregaRepository;
+    private final MoradorRepository moradorRepository;
 
     public Entrega cadastrar(EntregaRequestDTO dto) {
+        var claims = AuthContext.get();
+        String condominioId = (claims != null) ? claims.condominioId() : null;
+
         Entrega entrega = new Entrega();
+        if (condominioId != null && !condominioId.isBlank() && !"default".equals(condominioId)) {
+            entrega.setCondominioId(condominioId);
+        }
+
+        if (dto.getMoradorId() != null) {
+            UUID moradorUUID = UUID.fromString(dto.getMoradorId());
+            moradorRepository.findById(dto.getMoradorId()).ifPresent(m -> {
+                entrega.setMoradorId(moradorUUID);
+                entrega.setDestinatarioNome(m.getNome());
+                if (m.getBloco() != null) entrega.setBloco(m.getBloco().getNome());
+                if (m.getApartamento() != null) entrega.setApartamento(m.getApartamento().getNumero());
+            });
+        }
+
         entrega.setDestinatarioId(dto.getDestinatarioId());
-        entrega.setDestinatarioNome(dto.getDestinatarioNome());
-        entrega.setBloco(dto.getBloco());
-        entrega.setApartamento(dto.getApartamento());
+        if (entrega.getDestinatarioNome() == null) entrega.setDestinatarioNome(dto.getDestinatarioNome());
+        if (entrega.getBloco() == null) entrega.setBloco(dto.getBloco());
+        if (entrega.getApartamento() == null) entrega.setApartamento(dto.getApartamento());
         entrega.setDescricao(dto.getDescricao());
         entrega.setRemetente(dto.getRemetente());
         entrega.setObservacoes(dto.getObservacoes());
@@ -100,12 +124,26 @@ public class EntregaService {
         return entregaRepository.save(entrega);
     }
 
-    public List<Entrega> listarTodas() {
+    public List<Entrega> listarTodas(String condominioId) {
+        if (condominioId != null && !condominioId.isBlank()) {
+            return entregaRepository.findByCondominioId(condominioId);
+        }
         return entregaRepository.findAll();
     }
 
-    public List<Entrega> listarPendentes() {
+    public List<Entrega> listarPendentes(String condominioId) {
+        if (condominioId != null && !condominioId.isBlank()) {
+            return entregaRepository.findByCondominioIdAndStatus(condominioId, "PENDENTE");
+        }
         return entregaRepository.findByStatus("PENDENTE");
+    }
+
+    public List<Entrega> listarPorMorador(UUID moradorId) {
+        return entregaRepository.findByMoradorId(moradorId);
+    }
+
+    public List<Entrega> listarPendentesPorMorador(UUID moradorId) {
+        return entregaRepository.findByMoradorIdAndStatus(moradorId, "PENDENTE");
     }
 
     public Entrega buscarPorId(String id) {

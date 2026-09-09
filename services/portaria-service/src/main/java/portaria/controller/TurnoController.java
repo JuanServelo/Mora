@@ -6,6 +6,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import portaria.model.Turno;
+import portaria.security.CondominioUtils;
 import portaria.service.TurnoService;
 
 import java.util.List;
@@ -34,7 +35,7 @@ public class TurnoController {
 
     @GetMapping
     public List<Turno> listarTodos() {
-        return turnoService.listarTodos();
+        return turnoService.listarTodos(CondominioUtils.condominioIdEfetivo());
     }
 
     @GetMapping("/{id}")

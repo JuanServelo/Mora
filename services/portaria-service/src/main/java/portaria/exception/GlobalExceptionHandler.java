@@ -69,8 +69,8 @@ public class GlobalExceptionHandler {
             return buildResponse(HttpStatus.CONFLICT, "Já existe um bloco com este nome neste condomínio.");
         if (msg != null && msg.contains("apartamentos_numero_blocoid_key"))
             return buildResponse(HttpStatus.CONFLICT, "Já existe um apartamento com este número neste bloco.");
-        if (msg != null && msg.contains("areas_comuns_nome_key"))
-            return buildResponse(HttpStatus.CONFLICT, "Já existe uma área comum com este nome.");
+        if (msg != null && (msg.contains("areas_comuns_nome_key") || msg.contains("areas_comuns_nome_condominioId_key")))
+            return buildResponse(HttpStatus.CONFLICT, "Já existe uma área comum com este nome neste condomínio.");
         return buildResponse(HttpStatus.CONFLICT, "Registro duplicado — verifique os dados informados.");
     }
 

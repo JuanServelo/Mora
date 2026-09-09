@@ -25,6 +25,9 @@ router.get('/', async (req, res) => {
 
     const where = isPM ? {} : { id: req.user.condominioId };
 
+    // Filtro de status opcional (ex: ?status=active para o seletor de criação de usuários).
+    if (req.query.status) where.status = req.query.status;
+
     const condominios = await Condominio.findAll({
       where,
       order: [['nome', 'ASC']],

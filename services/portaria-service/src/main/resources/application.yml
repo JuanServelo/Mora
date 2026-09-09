@@ -16,6 +16,9 @@ spring:
 
   jpa:
     hibernate:
+      # 'update' cria tabelas novas automaticamente (útil em dev).
+      # Em produção, prefira 'validate' para falhar no startup se alguma tabela faltar,
+      # em vez de silenciosamente criar uma estrutura incompleta.
       ddl-auto: update
       naming:
         physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
@@ -39,6 +42,10 @@ spring:
           - "traefik.http.routers.portaria.entrypoints=web"
           - "traefik.http.middlewares.portaria-stripprefix.stripprefix.prefixes=/api/portaria"
           - "traefik.http.routers.portaria.middlewares=portaria-stripprefix"
+          - "traefik.http.routers.vagas-compat.rule=PathPrefix(`/api/vagas`)"
+          - "traefik.http.routers.vagas-compat.entrypoints=web"
+          - "traefik.http.middlewares.vagas-compat-stripprefix.stripprefix.prefixes=/api/vagas"
+          - "traefik.http.routers.vagas-compat.middlewares=vagas-compat-stripprefix"
 
         health-check-path: /actuator/health
         health-check-interval: 15s

@@ -9,6 +9,8 @@ import vagas.dto.VagaRequestDTO;
 import vagas.dto.VagaResponseDTO;
 import vagas.exception.OperacaoInvalidaException;
 import vagas.model.Vaga;
+import vagas.security.AuthContext;
+import vagas.security.JwtClaims;
 import vagas.service.VagaService;
 
 import java.util.List;
@@ -21,15 +23,9 @@ public class VagaController {
 
     private final VagaService vagaService;
 
-    /**
-     * Apenas ADMINISTRADOR pode cadastrar vagas (RF09).
-     * O role é propagado pelo API Gateway (Traefik) no header X-User-Role.
-     */
     @PostMapping("/cadastrar")
-    public ResponseEntity<VagaResponseDTO> cadastrar(
-            @Valid @RequestBody VagaRequestDTO dto,
-            @RequestHeader(value = "X-User-Role", required = false) String role) {
-        validarAdministrador(role);
+    public ResponseEntity<VagaResponseDTO> cadastrar(@Valid @RequestBody VagaRequestDTO dto) {
+        validarAdministrador();
         Vaga salvo = vagaService.cadastrar(dto);
         return ResponseEntity.status(HttpStatus.CREATED).body(VagaResponseDTO.fromEntity(salvo));
     }
@@ -42,9 +38,8 @@ public class VagaController {
     }
 
     @GetMapping("/todas")
-    public List<VagaResponseDTO> listarTodas(
-            @RequestHeader(value = "X-User-Role", required = false) String role) {
-        validarAdministrador(role);
+    public List<VagaResponseDTO> listarTodas() {
+        validarAdministrador();
         return vagaService.listarTodas().stream()
                 .map(VagaResponseDTO::fromEntity)
                 .toList();
@@ -62,51 +57,35 @@ public class VagaController {
                 .toList();
     }
 
-    /**
-     * Apenas ADMINISTRADOR pode atualizar vagas (RF09).
-     */
     @PutMapping("/{id}")
-    public VagaResponseDTO atualizar(
-            @PathVariable String id,
-            @Valid @RequestBody VagaRequestDTO dto,
-            @RequestHeader(value = "X-User-Role", required = false) String role) {
-        validarAdministrador(role);
+    public VagaResponseDTO atualizar(@PathVariable String id, @Valid @RequestBody VagaRequestDTO dto) {
+        validarAdministrador();
         return VagaResponseDTO.fromEntity(vagaService.atualizar(id, dto));
     }
 
-    /**
-     * Apenas ADMINISTRADOR pode desativar vagas (RF09).
-     */
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> desativar(
-            @PathVariable String id,
-            @RequestHeader(value = "X-User-Role", required = false) String role) {
-        validarAdministrador(role);
+    public ResponseEntity<Void> desativar(@PathVariable String id) {
+        validarAdministrador();
         vagaService.desativar(id);
         return ResponseEntity.noContent().build();
     }
 
-    /**
-     * Apenas ADMINISTRADOR pode reativar vagas (RF09).
-     */
     @PostMapping("/{id}/ativar")
-    public ResponseEntity<Void> ativar(
-            @PathVariable String id,
-            @RequestHeader(value = "X-User-Role", required = false) String role) {
-        validarAdministrador(role);
+    public ResponseEntity<Void> ativar(@PathVariable String id) {
+        validarAdministrador();
         vagaService.ativar(id);
         return ResponseEntity.noContent().build();
     }
 
-    // ---------------------------------------------------------------------------
-    // Helpers
-    // ---------------------------------------------------------------------------
-
-    private void validarAdministrador(String role) {
-        if (role == null || !(role.equalsIgnoreCase("ADMINISTRADOR") || role.equalsIgnoreCase("SINDICO"))) {
+    private void validarAdministrador() {
+        JwtClaims claims = AuthContext.get();
+        if (claims == null) {
+            throw new OperacaoInvalidaException("Acesso negado: autenticação necessária.");
+        }
+        String perfil = claims.perfil();
+        if (perfil == null || !(perfil.equals("ADMIN_SINDICO") || perfil.equals("ADMIN_GERAL"))) {
             throw new OperacaoInvalidaException(
-                    "Acesso negado: apenas ADMINISTRADOR ou SINDICO podem executar esta operação.");
+                    "Acesso negado: apenas administradores podem executar esta operação.");
         }
     }
 }
-

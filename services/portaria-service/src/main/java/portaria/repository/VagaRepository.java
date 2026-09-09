@@ -12,4 +12,6 @@ public interface VagaRepository extends JpaRepository<Vaga, String> {
     Optional<Vaga> findByNumero(String numero);
     List<Vaga> findByApartamentoId(UUID apartamentoId);
     List<Vaga> findByAtiva(boolean ativa);
+    List<Vaga> findByCondominioId(String condominioId);
+    List<Vaga> findByCondominioIdAndAtiva(String condominioId, boolean ativa);
 }

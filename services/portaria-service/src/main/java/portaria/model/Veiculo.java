@@ -25,6 +25,10 @@ public class Veiculo {
 
     private String modelo;
 
+    private String cor;
+
+    private String obs;
+
     /** Cliente dono deste registro. Todo dado de domínio pertence a um condomínio. */
     @Column(name = "`condominioId`")
     private String condominioId;
@@ -36,6 +40,12 @@ public class Veiculo {
     /** Nulo apenas para VEICULO_SERVICO */
     @Column(name = "proprietario_id")
     private String proprietarioId;
+
+    @Column(name = "proprietario_nome")
+    private String proprietarioNome;
+
+    @Column(name = "proprietario_cpf")
+    private String proprietarioCpf;
 
     /** Nulo apenas para VEICULO_SERVICO */
     @Enumerated(EnumType.STRING)

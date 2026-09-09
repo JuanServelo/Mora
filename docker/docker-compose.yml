@@ -76,26 +76,49 @@ services:
       - SPRING_CLOUD_CONSUL_PORT=8500
       - TZ=America/Sao_Paulo
 
-  # 5. Microservice 2: Vagas de Estacionamento (Java)
-  vagas-service:
+  # 5. DESATIVADO — vagas-service migrado para portaria-service (Fase 3)
+  # vagas-service:
+  #   build:
+  #     context: ../services/vagas-service
+  #     dockerfile: Dockerfile
+  #   container_name: vagas-service
+  #   depends_on:
+  #     - consul
+  #     - postgres
+  #   networks:
+  #     - microservices-net
+  #   ports:
+  #     - "8092:8092"
+  #   environment:
+  #     - POSTGRES_HOST=postgres
+  #     - POSTGRES_DB=vagas_db
+  #     - POSTGRES_USER=${POSTGRES_USER:-admin}
+  #     - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-Vibers@2112}
+  #     - SPRING_CLOUD_CONSUL_HOST=consul
+  #     - SPRING_CLOUD_CONSUL_PORT=8500
+
+  # 5.5. Microservice: Comunicação — avisos, artigos, notificações, chat
+  comunicacao-service:
     build:
-      context: ../services/vagas-service
+      context: ../services/comunicacao-service
       dockerfile: Dockerfile
-    container_name: vagas-service
+    container_name: comunicacao-service
     depends_on:
       - consul
       - postgres
     networks:
       - microservices-net
     ports:
-      - "8092:8092"
+      - "8094:8094"
     environment:
       - POSTGRES_HOST=postgres
-      - POSTGRES_DB=vagas_db
+      - POSTGRES_DB=${POSTGRES_DB:-mora}
       - POSTGRES_USER=${POSTGRES_USER:-admin}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-Vibers@2112}
+      - JWT_SECRET=${JWT_SECRET:-uma-chave-secreta-muito-segura-de-32-caracteres}
       - SPRING_CLOUD_CONSUL_HOST=consul
       - SPRING_CLOUD_CONSUL_PORT=8500
+      - TZ=America/Sao_Paulo
 
   # 6. Microservice 3: Meetings e Atas (Java)
   meeting-service:
@@ -189,6 +212,7 @@ services:
       - AUTH_API_URL=http://auth-api:3001
       - PORTARIA_SERVICE_URL=http://portaria-service:8090
       - PLAN_SERVICE_URL=http://plan-service:8093
+      - COMUNICACAO_SERVICE_URL=http://comunicacao-service:8094
       - TZ=America/Sao_Paulo
 
   # 8. pgAdmin (visualizador do banco de dados)

@@ -2,21 +2,28 @@ package portaria.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import portaria.exception.OperacaoInvalidaException;
 import portaria.exception.RecursoNaoEncontradoException;
 import portaria.model.Turno;
 import portaria.repository.TurnoRepository;
+import portaria.security.AuthContext;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class TurnoService {
 
     private final TurnoRepository turnoRepository;
 
     public Turno iniciar(Turno turno) {
+        var claims = AuthContext.get();
+        if (claims != null && claims.condominioId() != null && !"default".equals(claims.condominioId())) {
+            turno.setCondominioId(claims.condominioId());
+        }
         turno.getEntradas().add(LocalDateTime.now());
         return turnoRepository.save(turno);
     }
@@ -39,7 +46,10 @@ public class TurnoService {
         return turnoRepository.save(turno);
     }
 
-    public List<Turno> listarTodos() {
+    public List<Turno> listarTodos(String condominioId) {
+        if (condominioId != null && !condominioId.isBlank()) {
+            return turnoRepository.findByCondominioId(condominioId);
+        }
         return turnoRepository.findAll();
     }
 

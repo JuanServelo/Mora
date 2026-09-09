@@ -3,7 +3,7 @@ package portaria.model;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
-import portaria.model.enums.TipoResponsavel;
+import portaria.model.enums.TipoLocal;
 import java.time.LocalDateTime;
 
 @Data
@@ -19,23 +19,28 @@ public class Chave {
     @Column(name = "nome_chave")
     private String nomeChave;
 
-    @Column(name = "responsavel_id")
-    private String responsavelId;
+    // Lowercase + trimmed, usado para unicidade por local (RN-04)
+    @Column(name = "nome_normalizado")
+    private String nomeNormalizado;
+
+    @Column(name = "descricao")
+    private String descricao;
+
+    @Column(name = "local_id")
+    private String localId;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "tipo_responsavel")
-    private TipoResponsavel tipoResponsavel;
+    @Column(name = "tipo_local")
+    private TipoLocal tipoLocal;
 
-    @Column(name = "nome_responsavel")
-    private String nomeResponsavel;
+    @Column(name = "local_nome")
+    private String localNome;
 
-    /** Cliente dono deste registro. Todo dado de domínio pertence a um condomínio. */
     @Column(name = "`condominioId`")
     private String condominioId;
 
-    private LocalDateTime retirada;
-
-    private LocalDateTime devolucao;
-
     private boolean disponivel = true;
+
+    @Column(name = "`criadoEm`")
+    private LocalDateTime criadoEm = LocalDateTime.now();
 }

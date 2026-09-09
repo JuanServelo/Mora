@@ -2,6 +2,7 @@ package portaria.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import portaria.dto.ApartamentoRequestDTO;
 import portaria.exception.OperacaoInvalidaException;
 import portaria.exception.RecursoNaoEncontradoException;
@@ -15,13 +16,21 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class ApartamentoService {
+
+    private static final int MIN_QUARTOS = 1;
+    private static final int MAX_QUARTOS = 10;
+    private static final double MIN_AREA_M2 = 10.0;
+    private static final double MAX_AREA_M2 = 2000.0;
 
     private final ApartamentoRepository apartamentoRepository;
     private final BlocoService blocoService;
 
     public Apartamento cadastrar(ApartamentoRequestDTO request) {
         Bloco bloco = blocoService.buscarPorId(request.getBlocoId());
+
+        validarCamposApartamento(request);
 
         apartamentoRepository.findByNumeroAndBloco_Id(request.getNumero(), request.getBlocoId())
                 .ifPresent(a -> {
@@ -30,11 +39,19 @@ public class ApartamentoService {
                             " no bloco " + bloco.getNome());
                 });
 
-        if (bloco.getAndares() != null && request.getAndar() > bloco.getAndares()) {
+        if (request.getAndar() != null && bloco.getAndares() != null && request.getAndar() > bloco.getAndares()) {
             throw new OperacaoInvalidaException(
-                    "Andar " + request.getAndar() +
-                    " inválido. O bloco " + bloco.getNome() +
-                    " tem apenas " + bloco.getAndares() + " andares");
+                    "O bloco " + bloco.getNome() + " possui apenas " + bloco.getAndares() + " andares.");
+        }
+
+        if (request.getAndar() != null && bloco.getApartamentosPorAndar() != null) {
+            long existentes = apartamentoRepository.countByBloco_IdAndAndar(request.getBlocoId(), request.getAndar());
+            if (existentes >= bloco.getApartamentosPorAndar()) {
+                throw new OperacaoInvalidaException(
+                        "O andar " + request.getAndar() + " já possui os " +
+                        bloco.getApartamentosPorAndar() + " apartamentos definidos para o bloco " +
+                        bloco.getNome() + ".");
+            }
         }
 
         Apartamento apartamento = new Apartamento();
@@ -82,11 +99,22 @@ public class ApartamentoService {
         Apartamento apartamento = buscarPorId(id);
         Bloco bloco = blocoService.buscarPorId(request.getBlocoId());
 
-        if (bloco.getAndares() != null && request.getAndar() > bloco.getAndares()) {
+        validarCamposApartamento(request);
+
+        if (request.getAndar() != null && bloco.getAndares() != null && request.getAndar() > bloco.getAndares()) {
             throw new OperacaoInvalidaException(
-                    "Andar " + request.getAndar() +
-                    " inválido. O bloco " + bloco.getNome() +
-                    " tem apenas " + bloco.getAndares() + " andares");
+                    "O bloco " + bloco.getNome() + " possui apenas " + bloco.getAndares() + " andares.");
+        }
+
+        boolean andarMudou = request.getAndar() != null && !request.getAndar().equals(apartamento.getAndar());
+        if (andarMudou && bloco.getApartamentosPorAndar() != null) {
+            long existentes = apartamentoRepository.countByBloco_IdAndAndar(request.getBlocoId(), request.getAndar());
+            if (existentes >= bloco.getApartamentosPorAndar()) {
+                throw new OperacaoInvalidaException(
+                        "O andar " + request.getAndar() + " já possui os " +
+                        bloco.getApartamentosPorAndar() + " apartamentos definidos para o bloco " +
+                        bloco.getNome() + ".");
+            }
         }
 
         apartamento.setNumero(request.getNumero());
@@ -119,5 +147,25 @@ public class ApartamentoService {
             throw new RecursoNaoEncontradoException("Apartamento não encontrado com id: " + id);
         }
         apartamentoRepository.deleteById(id);
+    }
+
+    private void validarCamposApartamento(ApartamentoRequestDTO request) {
+        if (request.getAndar() != null && request.getAndar() < 1) {
+            throw new OperacaoInvalidaException("Informe um número inteiro maior que zero.");
+        }
+        if (request.getQuartos() == null) {
+            throw new OperacaoInvalidaException("Quantidade de quartos é obrigatória.");
+        }
+        if (request.getQuartos() < MIN_QUARTOS || request.getQuartos() > MAX_QUARTOS) {
+            throw new OperacaoInvalidaException(
+                    "A quantidade de quartos deve estar entre " + MIN_QUARTOS + " e " + MAX_QUARTOS + ".");
+        }
+        if (request.getAreaMxComTotal() == null) {
+            throw new OperacaoInvalidaException("Área total é obrigatória.");
+        }
+        if (request.getAreaMxComTotal() < MIN_AREA_M2 || request.getAreaMxComTotal() > MAX_AREA_M2) {
+            throw new OperacaoInvalidaException(
+                    "A área total deve estar entre " + (int) MIN_AREA_M2 + " e " + (int) MAX_AREA_M2 + " m².");
+        }
     }
 }

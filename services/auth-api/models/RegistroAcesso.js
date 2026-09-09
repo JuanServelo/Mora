@@ -23,6 +23,14 @@ const RegistroAcesso = sequelize.define('RegistroAcesso', {
     type: DataTypes.STRING(50),
     allowNull: true,
   },
+  nomeSnapshot: {
+    type: DataTypes.STRING(150),
+    allowNull: true,
+  },
+  perfilSnapshot: {
+    type: DataTypes.STRING(50),
+    allowNull: true,
+  },
 }, {
   tableName: 'registros_acesso',
   timestamps: true,

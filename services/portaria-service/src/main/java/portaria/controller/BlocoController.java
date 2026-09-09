@@ -6,6 +6,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import portaria.model.Bloco;
+import portaria.security.CondominioUtils;
 import portaria.service.BlocoService;
 
 import java.util.List;
@@ -25,12 +26,12 @@ public class BlocoController {
 
     @GetMapping
     public List<Bloco> listarAtivos(@RequestParam(required = false) String condominioId) {
-        return blocoService.listarAtivos(condominioId);
+        return blocoService.listarAtivos(CondominioUtils.resolverEscopo(condominioId));
     }
 
     @GetMapping("/todos")
     public List<Bloco> listarTodos(@RequestParam(required = false) String condominioId) {
-        return blocoService.listarTodos(condominioId);
+        return blocoService.listarTodos(CondominioUtils.resolverEscopo(condominioId));
     }
 
     @GetMapping("/{id}")

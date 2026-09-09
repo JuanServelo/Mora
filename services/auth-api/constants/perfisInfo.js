@@ -93,6 +93,17 @@ export const PERFIS_DESCRICAO = {
     podeCadastrar: [],
     semAcessoSistema: true,
   },
+
+  [PERFIS.TERCEIRO]: {
+    label: 'Terceiro',
+    categoria: 'condominio',
+    descricao: 'Funcionário terceirizado que atua no condomínio (limpeza, manutenção, segurança). Não acessa o sistema por padrão.',
+    permissoes: [
+      'Pode receber a posse de chaves do condomínio registradas pelo porteiro',
+    ],
+    podeCadastrar: [],
+    semAcessoSistema: true,
+  },
 };
 
 export const CATEGORIAS_PERFIS = {

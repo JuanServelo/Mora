@@ -1,12 +1,12 @@
 package portaria.dto;
 
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import portaria.model.enums.CategoriaVeiculo;
+import portaria.model.enums.TipoProprietario;
 
 @Data
 @Builder
@@ -19,12 +19,26 @@ public class CriarVeiculoDTO {
 
     private String modelo;
 
-    @NotNull(message = "Categoria do veículo é obrigatória")
+    private String cor;
+
+    private String obs;
+
+    /**
+     * Tipo de vínculo (Morador / Visitante / Serviço).
+     * Determina quais campos são obrigatórios e a categoria derivada.
+     * Quando presente, categoria é ignorada e computada server-side.
+     */
+    private TipoProprietario tipoProprietario;
+
+    /**
+     * Mantido para compatibilidade com cadastros legados que ainda enviam categoria.
+     * Quando tipoProprietario estiver presente, este campo é ignorado.
+     */
     private CategoriaVeiculo categoria;
 
-    /** Obrigatório para CARRO e MOTO; ignorado para VEICULO_SERVICO */
+    /** Obrigatório para MORADOR e FUNCIONARIO; anfitrião para VISITANTE. */
     private String proprietarioId;
 
-    /** Obrigatório para CARRO e MOTO; ignorado para VEICULO_SERVICO */
+    /** Obrigatório para MORADOR; não exibido/enviado para VISITANTE e FUNCIONARIO. */
     private String vagaId;
 }

@@ -6,6 +6,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import portaria.model.Funcionario;
+import portaria.security.CondominioUtils;
 import portaria.service.FuncionarioService;
 
 import java.util.List;
@@ -24,12 +25,12 @@ public class FuncionarioController {
 
     @GetMapping
     public List<Funcionario> listarAtivos() {
-        return funcionarioService.listarAtivos();
+        return funcionarioService.listarAtivos(CondominioUtils.condominioIdEfetivo());
     }
 
     @GetMapping("/todos")
     public List<Funcionario> listarTodos() {
-        return funcionarioService.listarTodos();
+        return funcionarioService.listarTodos(CondominioUtils.condominioIdEfetivo());
     }
 
     @GetMapping("/{id}")

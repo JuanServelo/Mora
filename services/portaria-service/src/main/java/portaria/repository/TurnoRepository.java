@@ -6,4 +6,5 @@ import java.util.List;
 
 public interface TurnoRepository extends JpaRepository<Turno, String> {
     List<Turno> findByFuncionario(String funcionario);
+    List<Turno> findByCondominioId(String condominioId);
 }

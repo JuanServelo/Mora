@@ -9,6 +9,7 @@ import {
   CONDOMINIO_DEFAULT,
   perfilExigeUnidade,
   perfilRequerPrecadastro,
+  perfilTemAcessoSistema,
 } from '../constants/perfis.js';
 import { gerarCodigoConvite, normalizarCodigo } from '../utils/inviteCode.js';
 import { enviarEmailConvite, AVISO_EMAIL_FALHOU } from '../utils/emailService.js';
@@ -353,6 +354,8 @@ export async function ativarConta({
       cadastradoPorId: invite.cadastradoPorId,
       // Herdado do convite: é o que distingue o morador que paga a fatura.
       responsavelFinanceiro: invite.responsavelFinanceiro ?? false,
+      // Perfis sem acesso ao sistema (ex: TERCEIRO, CONVIDADO) nascem bloqueados.
+      semAcessoSistema: !perfilTemAcessoSistema(invite.perfil),
       provider: 'local',
       activatedAt: new Date(),
       tokenVersion: 0,
@@ -366,7 +369,7 @@ export async function ativarConta({
     await transaction.commit();
 
     const perfil = usuario.getPerfilEfetivo();
-    const token = signToken(usuario.id, perfil, usuario.tokenVersion, usuario.email);
+    const token = signToken(usuario.id, perfil, usuario.tokenVersion, usuario.email, usuario.condominioId);
 
     return {
       sucesso: true,

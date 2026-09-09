@@ -3,6 +3,7 @@ package portaria.model;
 import jakarta.persistence.*;
 import lombok.Data;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Data
 @Entity
@@ -15,6 +16,9 @@ public class Entrega {
 
     @Column(name = "destinatario_id")
     private Long destinatarioId;
+
+    @Column(name = "morador_id")
+    private UUID moradorId;
 
     @Column(name = "destinatario_nome")
     private String destinatarioNome;

@@ -26,7 +26,6 @@ public class Bloco {
     @Column(name = "`condominioId`")
     private String condominioId;
 
-    @NotBlank(message = "Descrição é obrigatória")
     private String descricao;
 
     private Integer andares;

@@ -18,8 +18,12 @@ const authLimiter = rateLimit({
 
 const getJwtSecret = () => process.env.JWT_SECRET;
 
-export const signToken = (userId, perfil, tokenVersion = 0, email = undefined) =>
-  jwt.sign({ id: userId, perfil, tokenVersion, ...(email != null && { email }) }, getJwtSecret(), { expiresIn: '7d' });
+export const signToken = (userId, perfil, tokenVersion = 0, email = undefined, condominioId = undefined) =>
+  jwt.sign(
+    { id: userId, perfil, tokenVersion, ...(email != null && { email }), ...(condominioId != null && { condominioId }) },
+    getJwtSecret(),
+    { expiresIn: '7d' },
+  );
 
 function validarCamposObrigatorios(body, campos) {
   const erros = {};

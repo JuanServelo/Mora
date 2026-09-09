@@ -7,7 +7,9 @@ import java.time.LocalDateTime;
 
 @Data
 @Entity
-@Table(name = "areas_comuns")
+@Table(name = "areas_comuns", uniqueConstraints = {
+    @UniqueConstraint(name = "areas_comuns_nome_condominioId_key", columnNames = {"nome", "condominioId"})
+})
 public class AreaComum {
 
     @Id
